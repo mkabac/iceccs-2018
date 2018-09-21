@@ -8,7 +8,7 @@ The folder provides a dataset ([input_dataset/ENO_Box_3B06.csv](https://github.c
 
 <br />
 <p align="center">
-    <img src="site/qeopMap.pdf"/>
+    <img src="site/qeopMap.png"/>
     <h5 id="title" align="center">An overview of the microclimate WSN deployment in QEOP.</h5>
 </br>
 
