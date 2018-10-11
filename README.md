@@ -38,7 +38,7 @@ The relation between the size of the bigraph model and the execution time of rea
 The model of the WSN infrastructure used for the evaluation of our approach can be found in the ```model``` folder. The model is available in two versions. The ```model.big``` file defines the model using the bigraph specification language (more information on the model specification language can be found [here](http://www.dcs.gla.ac.uk/~michele/bigrapher.html)). The ```model.ml``` file defines the same model using an OCaml library (the library documentation can be found [here](http://www.dcs.gla.ac.uk/~michele/docs/bigraph/index.html)).
 
 ## References
-[1]Sevegnani, M. , Kabac, M., Calder, M.  and McCann, J. A. (2018) Modelling and Verification of Large-Scale Sensor Network Infrastructures. In: 23rd International Conference on Engineering of Complex Computer Systems (ICECCS 2018), Melbourne, Australia, 12-14 Dec 2018, (Accepted for Publication)
+[1] Sevegnani, M. , Kabac, M., Calder, M.  and McCann, J. A. (2018) Modelling and Verification of Large-Scale Sensor Network Infrastructures. In: 23rd International Conference on Engineering of Complex Computer Systems (ICECCS 2018), Melbourne, Australia, 12-14 Dec 2018, (Accepted for Publication)
 
 [2] Sevegnani, M.  and Calder, M.  (2016) BigraphER: rewriting and analysis engine for bigraphs. In: CAV 2016: 28th International Conference on Computer Aided Verification, Toronto, Canada, 17-23 Jul 2016, pp. 494-501.
 
