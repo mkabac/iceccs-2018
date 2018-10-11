@@ -1,0 +1,7 @@
+(jbuild_version 1)
+
+(executables
+ ((names (big4wsn_server))
+  (public_names (big4wsn_server))
+  (libraries (lwt lwt.unix ANSITerminal cmdliner bigraph big_json))
+ ))

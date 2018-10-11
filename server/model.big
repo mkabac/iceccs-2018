@@ -1,0 +1,259 @@
+# Signature
+
+# Data types
+atomic fun ctrl Int(x) = 0;
+atomic fun ctrl Float(x) = 0;
+atomic fun ctrl String(x) = 0;
+
+# Node types
+ctrl N = 1;                 # Idle node
+ctrl N_U = 1;               # Node in use
+atomic ctrl N_F = 1;        # Node with failure
+ctrl L = 0;                 # Links
+atomic ctrl L_E = 1;        # Link end
+
+fun ctrl App(x) = 0;        # Application           
+atomic fun ctrl A(x) = 0;   # Application token
+
+# Node configuration
+ctrl Conf = 1;
+
+# Node configuration values
+atomic fun ctrl MAC(x) = 0;
+atomic fun ctrl IPv6(x) = 0;
+atomic ctrl IPv6_unassigned = 0;
+ctrl Sensors = 0;
+atomic fun ctrl Date(x) = 0;
+atomic fun ctrl Temperature(x) = 0;
+atomic fun ctrl Humidity(x) = 0;
+atomic fun ctrl Light_level(x) = 0;
+atomic fun ctrl Pressure(x) = 0;
+atomic fun ctrl Energy_consumed(x) = 0;
+atomic fun ctrl Energy_generated(x) = 0;
+atomic fun ctrl Battery_state(x) = 0;
+atomic ctrl Battery_depleted = 0;
+atomic fun ctrl Max_battery(x) = 0;
+
+# Topology
+ctrl Park = 0;
+ctrl Bridge = 0;
+ctrl Hospital = 0;
+ctrl North = 0 ;
+ctrl South = 0;
+
+# Perspectives
+ctrl PHY = 0;
+ctrl DATA = 0;
+ctrl CONF = 0;
+
+# Initial state with an open channel
+big s0 =
+  (PHY.(North.(Hospital.1 | Bridge.1 | Park.1) | South.1) | {c})
+  || DATA.1
+  || CONF.1;
+
+fun react node_fail(ipv6) =
+  /c (N{c} || Conf{c}.(IPv6(ipv6) | id))
+  -->
+  /c (N_F{c} || Conf{c}.(IPv6(ipv6) | id))
+  @ [1];
+
+fun react used_node_fail(ipv6) =
+  /c (N_U{c} || Conf{c}.(IPv6(ipv6) | id))
+  -->
+  /c (N_F{c} || Conf{c}.(IPv6(ipv6) | id))
+  @ [1];
+    
+fun react node_recover(ipv6) =
+  /c (N_F{c} || Conf{c}.(IPv6(ipv6) | id))
+  -->
+  /c (N{c}.L.1 || Conf{c}.(IPv6_unassigned | id));
+    
+fun big conf(mac) = 
+  MAC(mac) | IPv6_unassigned | Sensors.1;
+
+fun react new_node(mac) =
+  Park || DATA
+  -->
+  /c (Park.(N{c}.L.1 | id) || DATA.(Conf{c}.(conf(mac)) | id));
+
+fun react join(mac, ipv6) =
+  /c (N{c} || Conf{c}.(MAC(mac) | IPv6_unassigned | id))
+  -->
+  /c (N{c} || Conf{c}.(MAC(mac) | IPv6(ipv6) | id));
+
+fun react leave(ipv6) =
+  /c (N{c} || Conf{c}.(IPv6(ipv6) | id))
+  -->
+  /c (N{c}.L.1 || Conf{c}.(IPv6_unassigned | id))
+  @ [1];
+
+fun react used_leave(ipv6) =
+  /c (N_U{c} || Conf{c}.(IPv6(ipv6) | id))
+  -->
+  /c (N{c}.L.1 || Conf{c}.(IPv6_unassigned | id))
+  @ [1];  
+
+fun react new_link(addr1, addr2) =
+  /c0 /c1 (N{c0}.(L | id)
+           || N{c1}.(L | id)
+           || (Conf{c0}.(IPv6(addr1) | id)
+               | Conf{c1}.(IPv6(addr2) | id)))
+  -->
+  /c0 /c1 /l (N{c0}.(L.(L_E{l} | id) | id)
+              || N{c1}.(L.(L_E{l} | id) | id)
+              || (Conf{c0}.(IPv6(addr1) | id)
+                  | Conf{c1}.(IPv6(addr2) | id)));
+
+fun react used_new_link(addr1, addr2) =
+  /c0 /c1 (N_U{c0}.(L | id)
+           || N{c1}.(L | id)
+           || (Conf{c0}.(IPv6(addr1) | id)
+               | Conf{c1}.(IPv6(addr2) | id)))
+  -->
+  /c0 /c1 /l (N_U{c0}.(L.(L_E{l} | id) | id)
+              || N{c1}.(L.(L_E{l} | id) | id)
+              || (Conf{c0}.(IPv6(addr1) | id)
+                  | Conf{c1}.(IPv6(addr2) | id)));
+    
+fun react used_used_new_link(addr1, addr2) =
+  /c0 /c1 (N_U{c0}.(L | id)
+           || N_U{c1}.(L | id)
+           || (Conf{c0}.(IPv6(addr1) | id)
+               | Conf{c1}.(IPv6(addr2) | id)))
+  -->
+  /c0 /c1 /l (N_U{c0}.(L.(L_E{l} | id) | id)
+              || N_U{c1}.(L.(L_E{l} | id) | id)
+              || (Conf{c0}.(IPv6(addr1) | id)
+                  | Conf{c1}.(IPv6(addr2) | id)));
+    
+fun react drop_link(addr1, addr2) =
+  /c0 /c1 /l (N{c0}.(L.(L_E{l} | id) | id)
+              || N{c1}.(L.(L_E{l} | id) | id)
+              || (Conf{c0}.(IPv6(addr1) | id)
+                  | Conf{c1}.(IPv6(addr2) | id)))
+  -->
+  /c0 /c1 (N{c0}.(L | id)
+           || N{c1}.(L | id)
+           || (Conf{c0}.(IPv6(addr1) | id)
+               | Conf{c1}.(IPv6(addr2) | id)));
+
+fun react used_drop_link(addr1, addr2) =
+  /c0 /c1 /l (N_U{c0}.(L.(L_E{l} | id) | id)
+              || N{c1}.(L.(L_E{l} | id) | id)
+              || (Conf{c0}.(IPv6(addr1) | id)
+                  | Conf{c1}.(IPv6(addr2) | id)))
+  -->
+  /c0 /c1 (N_U{c0}.(L | id)
+           || N{c1}.(L | id)
+           || (Conf{c0}.(IPv6(addr1) | id)
+              | Conf{c1}.(IPv6(addr2) | id)));    
+
+fun react used_used_drop_link(addr1, addr2) =
+  /c0 /c1 /l (N_U{c0}.(L.(L_E{l} | id) | id)
+              || N_U{c1}.(L.(L_E{l} | id) | id)
+              || (Conf{c0}.(IPv6(addr1) | id)
+                  | Conf{c1}.(IPv6(addr2) | id)))
+  -->
+  /c0 /c1 (N_U{c0}.(L | id)
+           || N_U{c1}.(L | id)
+           || (Conf{c0}.(IPv6(addr1) | id)
+              | Conf{c1}.(IPv6(addr2) | id)));    
+
+fun big reading_data(date, t, h, l, p ,ec, eg, max_b) =
+  Date(date)
+  | Temperature(t)
+  | Humidity(h)
+  | Light_level(l)
+  | Pressure(p)
+  | Energy_consumed(ec)
+  | Energy_generated(eg)
+  | Max_battery(max_b);
+
+fun react reading(addr, date, t, h, l, p ,ec, eg, b, max_b) =
+  Conf{c}.(IPv6(addr) | Sensors | id)
+  -->
+  Conf{c}.(IPv6(addr)
+           | Sensors.(reading_data(date, t, h, l, p ,ec, eg, max_b)
+                      | Battery_state(b))
+           | id)
+  @ [1];
+
+fun react reading_depleted(addr, date, t, h, l, p, ec, eg, max_b) =
+  Conf{c}.(IPv6(addr) | Sensors | id)
+  -->
+  Conf{c}.(IPv6(addr)
+           | Sensors.(reading_data(date, t, h, l, p, ec, eg, max_b)
+                      | Battery_depleted)
+           | id)
+  @ [1];
+    
+fun react move(addr) =
+  /c (N{c} || Bridge || Conf{c}.(IPv6(addr) | id)) 
+  -->
+  /c (1 || Bridge.(N{c} | id) || Conf{c}.(IPv6(addr) | id));
+
+fun react deploy(n, x) =
+  CONF
+  -->
+  CONF.(App(n).A(x) | id);
+
+fun react deploy_on_node(x, addr) =
+  /c (N{c} || Conf{c}.(IPv6(addr) | id))
+  -->
+  /c (N_U{c}.(A(x) | id) || Conf{c}.(IPv6(addr) | id));
+
+fun react deploy_on_used_node(x, addr) =
+  /c (N_U{c} || Conf{c}.(IPv6(addr) | id))
+  -->
+  /c (N_U{c}.(A(x) | id) || Conf{c}.(IPv6(addr) | id));
+
+
+    
+fun react purge(x) =
+    A(x) -> 1;
+    
+# Garbage collection
+fun react double_links(addr1, addr2) =
+  /c0 /c1 /l0 /l1
+    ((N{c0}.(L.(L_E{l0} | L_E{l1} | id) | id)
+      | N{c1}.(L.(L_E{l0} | L_E{l1} | id) | id))
+    || (Conf{c0}.(IPv6(addr1) | id)
+        | Conf{c1}.(IPv6(addr2) | id)))
+  -->
+  /c0 /c1 /l0
+    ((N{c0}.(L.(L_E{l0} | id) | id)
+      | N{c1}.(L.(L_E{l0} | id) | id))
+    || (Conf{c0}.(IPv6(addr1) | id)
+        | Conf{c1}.(IPv6(addr2) | id))); 
+
+fun react double_token(x) =
+  N_U{c}.(A(x) | A(x) | id)
+  -->
+  N_U{c}.(A(x) | id);
+
+react broken_link =
+  /l L_E{l} -> 1;      
+
+# Static predicates
+
+# App x requires at least 2 sensors on the bridge       
+fun big app_req_1(x) =
+   Bridge.(N_U{c}.(A(x) | id) | N_U{c}.(A(x) | id) | id);      
+      
+fun big battery_below(x) =
+  Battery_state(x);
+            
+# Reactive system
+begin brs
+  int mac1 = 1;
+  int mac2 = 2;
+  int mac3 = 3;
+  int ip1 = 4;
+  int ip2 = 5;
+  int ip3 = 6;
+  init s0;
+  rules = [ { new_node(mac2), new_node(mac3), new_node(mac1) },
+            { join(mac1,ip1), join(mac2,ip2), join(mac3,ip3) },
+            { new_link(ip1,ip2), new_link(ip1,ip3), new_link(ip2,ip3) } ];
+end

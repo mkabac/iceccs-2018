@@ -1,0 +1,23 @@
+# Created by https://www.gitignore.io/api/ocaml
+
+# Emacs temp files
+*~
+\#*\#
+
+# jbuilder working directory
+_build/
+
+# jbuilder targets
+*.exe
+.merlin
+*.install
+*.zip
+
+# miscellaneous
+test.ml
+/bin/
+.classpath
+.project
+.settings
+.tags
+.tags1

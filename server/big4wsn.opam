@@ -1,0 +1,20 @@
+opam-version: "1.2"
+maintainer: "Michele Sevegnani <michele.sevegnani@glasgow.ac.uk>"
+version: "0.1"
+authors: [ "Milan Kabáč" "Michele Sevegnani" ]
+license: "BSD-3-clause"
+tags: [ "org:s4" "bigraphs" "wsn" ]
+homepage: "https://bitbucket.org/mkabac/bigraphs4wsn"
+dev-repo: "git+https://bitbucket.org/mkabac/bigraphs4wsn.git"
+
+depends: [
+  "jbuilder" {build & >= "1.0+beta13"}
+  "lwt" {>= "3.1.0"}
+  "ANSITerminal" {>= "0.7" }
+  "bigraph" {>= "1.0.0"}
+  "big_json" {>= "0.1.0"}
+]
+
+build: [ "jbuilder" "build" "-p" name "-j" jobs ]
+
+available: [ ocaml-version >= "4.04.0" ]
